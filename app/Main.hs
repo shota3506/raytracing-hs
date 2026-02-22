@@ -6,12 +6,23 @@ import Ray
 import System.IO (hPutStrLn, stderr)
 import Vec3
 
+hitSphere :: Vec3 -> Double -> Ray -> Bool
+hitSphere center radius r =
+  let oc = vSub center (rayOrigin r)
+      a = dot (rayDirection r) (rayDirection r)
+      b = -(2.0 * dot oc (rayDirection r))
+      c = dot oc oc - radius * radius
+      discriminant = b * b - 4 * a * c
+   in discriminant >= 0
+
 rayColor :: Ray -> Color
-rayColor r =
-  let unitDirection = vUnit (rayDirection r)
-      (Vec3 _ y _) = unitDirection
-      a = 0.5 * (y + 1.0)
-   in vScale (1.0 - a) (Vec3 1.0 1.0 1.0) `vAdd` vScale a (Vec3 0.5 0.7 1.0)
+rayColor r
+  | hitSphere (Vec3 0 0 (-1)) 0.5 r = Vec3 1 0 0
+  | otherwise =
+      let unitDirection = vUnit (rayDirection r)
+          (Vec3 _ y _) = unitDirection
+          a = 0.5 * (y + 1.0)
+       in vScale (1.0 - a) (Vec3 1.0 1.0 1.0) `vAdd` vScale a (Vec3 0.5 0.7 1.0)
 
 main :: IO ()
 main = do

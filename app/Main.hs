@@ -1,7 +1,9 @@
 module Main (main) where
 
+import Color (formatColor)
 import Control.Monad (forM_)
 import System.IO (hPutStrLn, stderr)
+import Vec3 (Vec3 (Vec3))
 
 main :: IO ()
 main = do
@@ -16,9 +18,6 @@ main = do
       let r :: Double = fromIntegral i / fromIntegral (imageWidth - 1)
           g :: Double = fromIntegral j / fromIntegral (imageHeight - 1)
           b :: Double = 0.0
-          ir = round (255.999 * r) :: Int
-          ig = round (255.999 * g) :: Int
-          ib = round (255.999 * b) :: Int
-      putStrLn $ show ir ++ " " ++ show ig ++ " " ++ show ib
+      putStrLn $ formatColor (Vec3 r g b)
 
   hPutStrLn stderr "Done."

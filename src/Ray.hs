@@ -3,8 +3,8 @@ module Ray where
 import Vec3
 
 data Ray = Ray
-  { origin :: Point3,
-    direction :: Vec3
+  { rayOrigin :: Point3,
+    rayDirection :: Vec3
   }
 
 rayAt :: Ray -> Double -> Point3

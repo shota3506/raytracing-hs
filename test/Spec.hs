@@ -1,5 +1,6 @@
 module Main (main) where
 
+import Ray
 import Test.Hspec
 import Vec3
 
@@ -46,3 +47,16 @@ main = hspec $ do
   describe "vNegate" $ do
     it "negates a vector" $ do
       vNegate (Vec3 1 (-2) 3) `shouldBe` Vec3 (-1) 2 (-3)
+
+  describe "rayAt" $ do
+    it "computes point at t=0" $ do
+      let r = Ray (Vec3 0 0 0) (Vec3 1 2 3)
+      rayAt r 0 `shouldBe` Vec3 0 0 0
+
+    it "computes point at t=1" $ do
+      let r = Ray (Vec3 1 0 0) (Vec3 0 1 0)
+      rayAt r 1 `shouldBe` Vec3 1 1 0
+
+    it "computes point at t=2" $ do
+      let r = Ray (Vec3 1 2 3) (Vec3 1 1 1)
+      rayAt r 2 `shouldBe` Vec3 3 4 5

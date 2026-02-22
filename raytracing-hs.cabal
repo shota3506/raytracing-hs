@@ -10,9 +10,24 @@ extra-doc-files: CHANGELOG.md
 common warnings
     ghc-options: -Wall
 
+library
+    import:           warnings
+    exposed-modules:  Vec3
+    hs-source-dirs:   src
+    build-depends:    base ^>=4.18.3.0
+    default-language: GHC2021
+
 executable raytracing-hs
     import:           warnings
     main-is:          Main.hs
-    build-depends:    base ^>=4.18.3.0
+    build-depends:    base ^>=4.18.3.0, raytracing-hs
     hs-source-dirs:   app
+    default-language: GHC2021
+
+test-suite raytracing-hs-test
+    import:           warnings
+    type:             exitcode-stdio-1.0
+    main-is:          Spec.hs
+    hs-source-dirs:   test
+    build-depends:    base ^>=4.18.3.0, hspec, raytracing-hs
     default-language: GHC2021

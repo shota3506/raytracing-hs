@@ -10,10 +10,10 @@ hitSphere :: Vec3 -> Double -> Ray -> Double
 hitSphere center radius r =
   let oc = vSub center (rayOrigin r)
       a = dot (rayDirection r) (rayDirection r)
-      b = -(2.0 * dot oc (rayDirection r))
+      h = dot oc (rayDirection r)
       c = dot oc oc - radius * radius
-      discriminant = b * b - 4 * a * c
-   in if discriminant < 0 then -1.0 else (-b - sqrt discriminant) / (2.0 * a)
+      discriminant = h * h - a * c
+   in if discriminant < 0 then -1.0 else (h - sqrt discriminant) / a
 
 rayColor :: Ray -> Color
 rayColor r

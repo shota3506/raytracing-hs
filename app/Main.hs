@@ -3,31 +3,40 @@ module Main (main) where
 import Color
 import Control.Monad (forM_)
 import Ray
-import Shape
+import Scene
+import Shape qualified
 import Sphere
 import System.IO (hPutStrLn, stderr)
 import Vec3
 
-rayColor :: Ray -> Color
-rayColor r
-  | Just isec <- hit (toShape (Sphere sphereCenter 0.5)) r 0.0 (1 / 0) =
-      let Vec3 x y z = normal isec
+rayColor :: Ray -> Scene -> Color
+rayColor r scene
+  | Just isec <- hit scene r 0.0 (1 / 0) =
+      let Vec3 x y z = Shape.normal isec
        in vScale 0.5 (Vec3 (x + 1) (y + 1) (z + 1))
   | otherwise =
       let unitDirection = vUnit (rayDirection r)
           (Vec3 _ y _) = unitDirection
           a = 0.5 * (y + 1.0)
        in vScale (1.0 - a) (Vec3 1.0 1.0 1.0) `vAdd` vScale a (Vec3 0.5 0.7 1.0)
-  where
-    sphereCenter = Vec3 0 0 (-1)
 
 main :: IO ()
 main = do
+  -- Image
   let aspectRatio :: Double = 16.0 / 9.0
 
   let imageWidth :: Int = 400
   let imageHeight :: Int = max 1 (floor (fromIntegral imageWidth / aspectRatio))
 
+  -- Scene
+
+  let scene =
+        Scene
+          [ toShape (Sphere (Vec3 0 0 (-1)) 0.5),
+            toShape (Sphere (Vec3 0 (-100.5) (-1)) 100)
+          ]
+
+  -- Camera
   let focalLength :: Double = 1.0
   let viewportHeight :: Double = 2.0
   let viewportWidth :: Double = viewportHeight * (fromIntegral imageWidth / fromIntegral imageHeight)
@@ -50,6 +59,6 @@ main = do
       let pixelCenter = pixel00Loc `vAdd` vScale (fromIntegral i) pixelDeltaU `vAdd` vScale (fromIntegral j) pixelDeltaV
       let rayDirection = vSub pixelCenter cameraCenter
       let r = Ray cameraCenter rayDirection
-      putStrLn $ formatColor (rayColor r)
+      putStrLn $ formatColor (rayColor r scene)
 
   hPutStrLn stderr "Done."

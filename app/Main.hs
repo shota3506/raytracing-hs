@@ -25,7 +25,14 @@ main = do
           ]
 
   -- Camera
-  let cam = mkCamera CameraConfig {aspectRatio, imageWidth, samplesPerPixel = 10}
+  let cam =
+        mkCamera
+          CameraConfig
+            { aspectRatio,
+              imageWidth,
+              samplesPerPixel = 50,
+              maxDepth = 50
+            }
 
   let gen = mkStdGen 42
 

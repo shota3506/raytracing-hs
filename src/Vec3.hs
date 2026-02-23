@@ -1,5 +1,7 @@
 module Vec3 where
 
+import System.Random (StdGen, uniformR)
+
 data Vec3 = Vec3 Double Double Double
   deriving (Show, Eq)
 
@@ -35,3 +37,10 @@ unit v = Vec3.div (Vec3.length v) v
 
 negate :: Vec3 -> Vec3
 negate = scale (-1)
+
+random :: Double -> Double -> StdGen -> (Vec3, StdGen)
+random vmin vmax gen =
+  let (x, gn1) = uniformR (vmin, vmax) gen
+      (y, gn2) = uniformR (vmin, vmax) gn1
+      (z, gn3) = uniformR (vmin, vmax) gn2
+   in (Vec3 x y z, gn3)

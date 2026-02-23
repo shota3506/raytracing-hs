@@ -10,10 +10,24 @@ import System.Random (StdGen, uniformR)
 import Vec3 (Point3, Vec3 (..))
 import Vec3 qualified as V
 
+uniformSphere :: StdGen -> (Vec3, StdGen)
+uniformSphere gen
+  | lensq > 1e-12 && lensq <= 1.0 = (V.div (sqrt lensq) p, gen')
+  | otherwise = uniformSphere gen'
+  where
+    (p, gen') = V.random (-1.0) 1.0 gen
+    lensq = V.dot p p
+
+uniformHemisphere :: Vec3 -> StdGen -> (Vec3, StdGen)
+uniformHemisphere normal gen =
+  let (v, gen') = uniformSphere gen
+   in if V.dot v normal > 0 then (v, gen') else (V.negate v, gen')
+
 data CameraConfig = CameraConfig
   { aspectRatio :: Double,
     imageWidth :: Int,
-    samplesPerPixel :: Int
+    samplesPerPixel :: Int,
+    maxDepth :: Int
   }
   deriving (Show, Eq)
 
@@ -66,16 +80,18 @@ sampleRay cam i j gen =
       rayDirection = V.sub pixelCenter (center cam)
    in (Ray (center cam) rayDirection, gen1)
 
-rayColor :: Ray -> Scene -> Color
-rayColor r scene
-  | Just isec <- hit scene r (Interval 0.0 (1 / 0)) =
-      let Vec3 x y z = Shape.normal isec
-       in V.scale 0.5 (Vec3 (x + 1) (y + 1) (z + 1))
+rayColor :: Ray -> Int -> Scene -> StdGen -> (Color, StdGen)
+rayColor r depth scene gen
+  | depth <= 0 = (Vec3 0 0 0, gen)
+  | Just isec <- hit scene r (Interval 0.0001 (1 / 0)) =
+      let (direction, gen') = uniformHemisphere (Shape.normal isec) gen
+          (color, gen'') = rayColor (Ray (Shape.point isec) direction) (depth - 1) scene gen'
+       in (V.scale 0.5 color, gen'')
   | otherwise =
       let unitDirection = V.unit (rayDirection r)
           (Vec3 _ y _) = unitDirection
           a = 0.5 * (y + 1.0)
-       in V.add (V.scale (1.0 - a) (Vec3 1.0 1.0 1.0)) (V.scale a (Vec3 0.5 0.7 1.0))
+       in (V.add (V.scale (1.0 - a) (Vec3 1.0 1.0 1.0)) (V.scale a (Vec3 0.5 0.7 1.0)), gen)
 
 render :: Camera -> Scene -> StdGen -> ([[Color]], StdGen)
 render cam scene gen =
@@ -95,6 +111,6 @@ render cam scene gen =
     nSamples 0 _ _ g = ([], g)
     nSamples n i j g =
       let (r, g') = sampleRay cam i j g
-          color = rayColor r scene
-          (rest, g'') = nSamples (n - 1) i j g'
-       in (color : rest, g'')
+          (color, g'') = rayColor r (maxDepth (config cam)) scene g'
+          (rest, g''') = nSamples (n - 1) i j g''
+       in (color : rest, g''')

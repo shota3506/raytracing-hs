@@ -6,6 +6,7 @@ import Control.Monad (forM_)
 import Scene
 import Sphere
 import System.IO (hPutStrLn, stderr)
+import System.Random (mkStdGen)
 import Vec3 (Vec3 (..))
 
 main :: IO ()
@@ -24,11 +25,14 @@ main = do
           ]
 
   -- Camera
-  let cam = mkCamera CameraConfig {aspectRatio, imageWidth}
+  let cam = mkCamera CameraConfig {aspectRatio, imageWidth, samplesPerPixel = 10}
+
+  let gen = mkStdGen 42
 
   putStrLn ("P3\n" ++ show imageWidth ++ " " ++ show imageHeight ++ "\n255")
 
-  forM_ (zip [0 ..] (render cam scene)) $ \(j, row) -> do
+  let (rows, _) = render cam scene gen
+  forM_ (zip [0 ..] rows) $ \(j, row) -> do
     hPutStrLn stderr ("Scanlines remaining: " ++ show (imageHeight - j))
     mapM_ (putStrLn . formatColor) row
 

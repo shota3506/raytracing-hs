@@ -1,22 +1,26 @@
 module Camera where
 
 import Color
+import Data.List (foldl')
 import Interval
 import Ray
 import Scene
 import Shape qualified
+import System.Random (StdGen, uniformR)
 import Vec3 (Point3, Vec3 (..))
 import Vec3 qualified as V
 
 data CameraConfig = CameraConfig
   { aspectRatio :: Double,
-    imageWidth :: Int
+    imageWidth :: Int,
+    samplesPerPixel :: Int
   }
   deriving (Show, Eq)
 
 data Camera = Camera
   { config :: CameraConfig,
     imageHeight :: Int,
+    pixelSamplesScale :: Double,
     center :: Point3,
     pixel00Loc :: Point3,
     pixelDeltaU :: Vec3,
@@ -29,6 +33,7 @@ mkCamera cfg =
   Camera
     { config = cfg,
       imageHeight = height,
+      pixelSamplesScale = 1.0 / fromIntegral (samplesPerPixel cfg),
       center = cameraCenter,
       pixel00Loc = V.add viewportUpperLeft (V.div 2 (V.add pdu pdv)),
       pixelDeltaU = pdu,
@@ -48,6 +53,19 @@ mkCamera cfg =
     pdv = V.div (fromIntegral height) viewportV
     viewportUpperLeft = V.sub (V.sub (V.sub cameraCenter (Vec3 0 0 focalLength)) (V.div 2 viewportU)) (V.div 2 viewportV)
 
+sampleSquare :: StdGen -> (Vec3, StdGen)
+sampleSquare gen =
+  let (x, gen1) = uniformR (-0.5, 0.5) gen
+      (y, gen2) = uniformR (-0.5, 0.5) gen1
+   in (Vec3 x y 0, gen2)
+
+sampleRay :: Camera -> Int -> Int -> StdGen -> (Ray, StdGen)
+sampleRay cam i j gen =
+  let (Vec3 x y _, gen1) = sampleSquare gen
+      pixelCenter = V.add (V.add (pixel00Loc cam) (V.scale (fromIntegral i + x) (pixelDeltaU cam))) (V.scale (fromIntegral j + y) (pixelDeltaV cam))
+      rayDirection = V.sub pixelCenter (center cam)
+   in (Ray (center cam) rayDirection, gen1)
+
 rayColor :: Ray -> Scene -> Color
 rayColor r scene
   | Just isec <- hit scene r (Interval 0.0 (1 / 0)) =
@@ -59,12 +77,24 @@ rayColor r scene
           a = 0.5 * (y + 1.0)
        in V.add (V.scale (1.0 - a) (Vec3 1.0 1.0 1.0)) (V.scale a (Vec3 0.5 0.7 1.0))
 
-render :: Camera -> Scene -> [[Color]]
-render cam scene =
-  [ [ rayColor (Ray (center cam) rayDirection) scene
-    | i <- [0 .. imageWidth (config cam) - 1],
-      let pixelCenter = V.add (V.add (pixel00Loc cam) (V.scale (fromIntegral i) (pixelDeltaU cam))) (V.scale (fromIntegral j) (pixelDeltaV cam))
-          rayDirection = V.sub pixelCenter (center cam)
-    ]
-  | j <- [0 .. imageHeight cam - 1]
-  ]
+render :: Camera -> Scene -> StdGen -> ([[Color]], StdGen)
+render cam scene gen =
+  let (rows, gen') = foldl' renderRow ([], gen) [0 .. imageHeight cam - 1]
+   in (reverse rows, gen')
+  where
+    renderRow (rows, g) j =
+      let (revRow, g') = foldl' renderPixel ([], g) [0 .. imageWidth (config cam) - 1]
+          renderPixel (colors, gi) i =
+            let (color, go) = samplePixelColor i j gi
+             in (color : colors, go)
+       in (reverse revRow : rows, g')
+    samplePixelColor i j g =
+      let (colors, g') = nSamples (samplesPerPixel (config cam)) i j g
+          scale = pixelSamplesScale cam
+       in (V.scale scale (foldr V.add (Vec3 0 0 0) colors), g')
+    nSamples 0 _ _ g = ([], g)
+    nSamples n i j g =
+      let (r, g') = sampleRay cam i j g
+          color = rayColor r scene
+          (rest, g'') = nSamples (n - 1) i j g'
+       in (color : rest, g'')

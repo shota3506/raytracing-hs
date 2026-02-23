@@ -12,6 +12,9 @@ contains (Interval imin imax) x = x >= imin && x <= imax
 surrounds :: Interval -> Double -> Bool
 surrounds (Interval imin imax) x = x > imin && x < imax
 
+clamp :: Interval -> Double -> Double
+clamp (Interval imin imax) x = max imin (min imax x)
+
 empty :: Interval
 empty = Interval (1 / 0) (-(1 / 0))
 

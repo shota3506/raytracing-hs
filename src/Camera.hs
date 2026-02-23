@@ -84,7 +84,8 @@ rayColor :: Ray -> Int -> Scene -> StdGen -> (Color, StdGen)
 rayColor r depth scene gen
   | depth <= 0 = (Vec3 0 0 0, gen)
   | Just isec <- hit scene r (Interval 0.0001 (1 / 0)) =
-      let (direction, gen') = uniformHemisphere (Shape.normal isec) gen
+      let (v, gen') = uniformSphere gen
+          direction = V.add (Shape.normal isec) v
           (color, gen'') = rayColor (Ray (Shape.point isec) direction) (depth - 1) scene gen'
        in (V.scale 0.5 color, gen'')
   | otherwise =

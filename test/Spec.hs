@@ -1,11 +1,14 @@
 module Main (main) where
 
 import Ray
+import SphereSpec qualified
 import Test.Hspec
 import Vec3
 
 main :: IO ()
 main = hspec $ do
+  SphereSpec.spec
+
   describe "vAdd" $ do
     it "adds two vectors" $ do
       vAdd (Vec3 1 2 3) (Vec3 4 5 6) `shouldBe` Vec3 5 7 9

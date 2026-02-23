@@ -3,23 +3,15 @@ module Main (main) where
 import Color
 import Control.Monad (forM_)
 import Ray
+import Shape
+import Sphere
 import System.IO (hPutStrLn, stderr)
 import Vec3
 
-hitSphere :: Vec3 -> Double -> Ray -> Double
-hitSphere center radius r =
-  let oc = vSub center (rayOrigin r)
-      a = dot (rayDirection r) (rayDirection r)
-      h = dot oc (rayDirection r)
-      c = dot oc oc - radius * radius
-      discriminant = h * h - a * c
-   in if discriminant < 0 then -1.0 else (h - sqrt discriminant) / a
-
 rayColor :: Ray -> Color
 rayColor r
-  | t > 0 =
-      let n = vUnit (rayAt r t `vSub` sphereCenter)
-          Vec3 x y z = n
+  | Just isec <- hit (toShape (Sphere sphereCenter 0.5)) r 0.0 (1 / 0) =
+      let Vec3 x y z = normal isec
        in vScale 0.5 (Vec3 (x + 1) (y + 1) (z + 1))
   | otherwise =
       let unitDirection = vUnit (rayDirection r)
@@ -28,7 +20,6 @@ rayColor r
        in vScale (1.0 - a) (Vec3 1.0 1.0 1.0) `vAdd` vScale a (Vec3 0.5 0.7 1.0)
   where
     sphereCenter = Vec3 0 0 (-1)
-    t = hitSphere sphereCenter 0.5 r
 
 main :: IO ()
 main = do

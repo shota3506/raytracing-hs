@@ -1,6 +1,7 @@
 module Ray where
 
-import Vec3
+import Vec3 (Point3, Vec3)
+import Vec3 qualified as V
 
 data Ray = Ray
   { rayOrigin :: Point3,
@@ -8,4 +9,4 @@ data Ray = Ray
   }
 
 rayAt :: Ray -> Double -> Point3
-rayAt (Ray orig dir) t = vAdd orig (vScale t dir)
+rayAt (Ray orig dir) t = V.add orig (V.scale t dir)

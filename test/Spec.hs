@@ -3,53 +3,54 @@ module Main (main) where
 import Ray
 import SphereSpec qualified
 import Test.Hspec
-import Vec3
+import Vec3 (Vec3(..))
+import Vec3 qualified as V
 
 main :: IO ()
 main = hspec $ do
   SphereSpec.spec
 
-  describe "vAdd" $ do
+  describe "V.add" $ do
     it "adds two vectors" $ do
-      vAdd (Vec3 1 2 3) (Vec3 4 5 6) `shouldBe` Vec3 5 7 9
+      V.add (Vec3 1 2 3) (Vec3 4 5 6) `shouldBe` Vec3 5 7 9
 
     it "adds with zero vector" $ do
-      vAdd (Vec3 1 2 3) (Vec3 0 0 0) `shouldBe` Vec3 1 2 3
+      V.add (Vec3 1 2 3) (Vec3 0 0 0) `shouldBe` Vec3 1 2 3
 
-  describe "vSub" $ do
+  describe "V.sub" $ do
     it "subtracts two vectors" $ do
-      vSub (Vec3 4 5 6) (Vec3 1 2 3) `shouldBe` Vec3 3 3 3
+      V.sub (Vec3 4 5 6) (Vec3 1 2 3) `shouldBe` Vec3 3 3 3
 
     it "subtracts with zero vector" $ do
-      vSub (Vec3 1 2 3) (Vec3 0 0 0) `shouldBe` Vec3 1 2 3
+      V.sub (Vec3 1 2 3) (Vec3 0 0 0) `shouldBe` Vec3 1 2 3
 
-  describe "vMul" $ do
+  describe "V.mul" $ do
     it "multiplies two vectors element-wise" $ do
-      vMul (Vec3 2 3 4) (Vec3 5 6 7) `shouldBe` Vec3 10 18 28
+      V.mul (Vec3 2 3 4) (Vec3 5 6 7) `shouldBe` Vec3 10 18 28
 
-  describe "vScale" $ do
+  describe "V.scale" $ do
     it "scales a vector" $ do
-      vScale 2 (Vec3 1 2 3) `shouldBe` Vec3 2 4 6
+      V.scale 2 (Vec3 1 2 3) `shouldBe` Vec3 2 4 6
 
-  describe "vDiv" $ do
+  describe "V.div" $ do
     it "divides a vector by scalar" $ do
-      vDiv 2 (Vec3 2 4 6) `shouldBe` Vec3 1 2 3
+      V.div 2 (Vec3 2 4 6) `shouldBe` Vec3 1 2 3
 
-  describe "dot" $ do
+  describe "V.dot" $ do
     it "computes dot product" $ do
-      dot (Vec3 1 2 3) (Vec3 4 5 6) `shouldBe` 32
+      V.dot (Vec3 1 2 3) (Vec3 4 5 6) `shouldBe` 32
 
-  describe "cross" $ do
+  describe "V.cross" $ do
     it "computes cross product" $ do
-      cross (Vec3 1 0 0) (Vec3 0 1 0) `shouldBe` Vec3 0 0 1
+      V.cross (Vec3 1 0 0) (Vec3 0 1 0) `shouldBe` Vec3 0 0 1
 
-  describe "vLength" $ do
+  describe "V.length" $ do
     it "computes length" $ do
-      vLength (Vec3 3 4 0) `shouldBe` 5
+      V.length (Vec3 3 4 0) `shouldBe` 5
 
-  describe "vNegate" $ do
+  describe "V.negate" $ do
     it "negates a vector" $ do
-      vNegate (Vec3 1 (-2) 3) `shouldBe` Vec3 (-1) 2 (-3)
+      V.negate (Vec3 1 (-2) 3) `shouldBe` Vec3 (-1) 2 (-3)
 
   describe "rayAt" $ do
     it "computes point at t=0" $ do

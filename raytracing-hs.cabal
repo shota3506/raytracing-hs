@@ -12,7 +12,7 @@ common warnings
 
 library
     import:           warnings
-    exposed-modules:  Vec3, Color, Ray, Shape, Sphere, Scene
+    exposed-modules:  Vec3, Color, Ray, Shape, Sphere, Scene, Interval
     hs-source-dirs:   src
     build-depends:    base ^>=4.18.3.0
     default-language: GHC2021

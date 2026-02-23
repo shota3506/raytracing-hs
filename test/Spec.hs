@@ -1,5 +1,8 @@
 module Main (main) where
 
+import CameraSpec qualified
+import ColorSpec qualified
+import IntervalSpec qualified
 import Ray
 import SphereSpec qualified
 import Test.Hspec
@@ -9,6 +12,9 @@ import Vec3 qualified as V
 main :: IO ()
 main = hspec $ do
   SphereSpec.spec
+  IntervalSpec.spec
+  ColorSpec.spec
+  CameraSpec.spec
 
   describe "V.add" $ do
     it "adds two vectors" $ do

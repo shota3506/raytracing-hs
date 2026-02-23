@@ -1,0 +1,16 @@
+module IntervalSpec (spec) where
+
+import Interval
+import Test.Hspec
+
+spec :: Spec
+spec = describe "Interval" $ do
+  describe "clamp" $ do
+    it "clamps below min" $
+      clamp (Interval 0 1) (-0.5) `shouldBe` 0
+
+    it "clamps above max" $
+      clamp (Interval 0 1) 1.5 `shouldBe` 1
+
+    it "keeps value in range" $
+      clamp (Interval 0 1) 0.5 `shouldBe` 0.5

@@ -28,7 +28,7 @@ test-suite raytracing-hs-test
     import:           warnings
     type:             exitcode-stdio-1.0
     main-is:          Spec.hs
-    other-modules:    SphereSpec
+    other-modules:    SphereSpec, IntervalSpec, ColorSpec, CameraSpec
     hs-source-dirs:   test
     build-depends:    base ^>=4.18.3.0, hspec, raytracing-hs
     default-language: GHC2021

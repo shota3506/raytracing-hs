@@ -3,7 +3,7 @@ module Main (main) where
 import Ray
 import SphereSpec qualified
 import Test.Hspec
-import Vec3 (Vec3(..))
+import Vec3 (Vec3 (..))
 import Vec3 qualified as V
 
 main :: IO ()

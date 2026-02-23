@@ -7,7 +7,7 @@ import Ray
 import Shape
 import Sphere
 import Test.Hspec
-import Vec3 (Vec3(..))
+import Vec3 (Vec3 (..))
 import Vec3 qualified as V
 
 spec :: Spec

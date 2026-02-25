@@ -65,6 +65,16 @@ main = hspec $ do
     it "reflects straight back on head-on" $
       V.reflect (Vec3 0 0 (-1)) (Vec3 0 0 1) `shouldBe` Vec3 0 0 1
 
+  describe "V.refract" $ do
+    it "no bend when equal refractive indices" $
+      V.refract (Vec3 0 (-1) 0) (Vec3 0 1 0) 1.0 `shouldBe` Vec3 0 (-1) 0
+
+    it "refracts at 45 degrees into denser medium" $ do
+      let uv = V.unit (Vec3 1 (-1) 0)
+          result = V.refract uv (Vec3 0 1 0) (1.0 / 1.5)
+      V.length (V.sub result (V.unit result)) `shouldSatisfy` (< 1e-9)
+      V.dot result (Vec3 0 1 0) `shouldSatisfy` (< 0)
+
   describe "V.isNearZero" $ do
     it "returns True for near-zero vector" $
       V.isNearZero (Vec3 1e-9 1e-9 1e-9) `shouldBe` True

@@ -3,6 +3,7 @@ module Main (main) where
 import Camera
 import Color
 import Control.Monad (forM_)
+import Dielectric
 import Lambertian
 import Metal
 import Scene
@@ -21,8 +22,9 @@ main = do
 
   let materialGround = mkLambertian (Vec3 0.8 0.8 0.0)
       materialCenter = mkLambertian (Vec3 0.1 0.2 0.5)
-      materialLeft = mkMetal (Vec3 0.8 0.8 0.8) 0.3
+      materialLeft = mkDielectric (1.5)
       materialRight = mkMetal (Vec3 0.8 0.6 0.2) 1.0
+      materialBubble = mkDielectric (1.0 / 1.5)
 
   -- Scene
   let scene =
@@ -30,6 +32,7 @@ main = do
           [ toShape (Sphere (Vec3 0 0 (-1.2)) 0.5 materialCenter),
             toShape (Sphere (Vec3 0 (-100.5) (-1)) 100 materialGround),
             toShape (Sphere (Vec3 (-1) 0 (-1)) 0.5 materialLeft),
+            toShape (Sphere (Vec3 (-1) 0 (-1)) 0.4 materialBubble),
             toShape (Sphere (Vec3 1 0 (-1)) 0.5 materialRight)
           ]
 

@@ -44,6 +44,13 @@ isNearZero (Vec3 x y z) = abs x < 1e-8 && abs y < 1e-8 && abs z < 1e-8
 reflect :: Vec3 -> Vec3 -> Vec3
 reflect v n = sub v (scale (2 * dot v n) n)
 
+refract :: Vec3 -> Vec3 -> Double -> Vec3
+refract uv n etaiOverEtat =
+  let cosTheta = min (dot (Vec3.negate uv) n) 1.0
+      rPerp = scale etaiOverEtat (add uv (scale cosTheta n))
+      rParallel = Vec3.negate (scale (sqrt (max 0.0 (1.0 - dot rPerp rPerp))) n)
+   in add rPerp rParallel
+
 random :: Double -> Double -> StdGen -> (Vec3, StdGen)
 random vmin vmax gen =
   let (x, gn1) = uniformR (vmin, vmax) gen

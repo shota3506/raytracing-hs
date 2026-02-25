@@ -14,7 +14,11 @@ data CameraConfig = CameraConfig
   { aspectRatio :: Double,
     imageWidth :: Int,
     samplesPerPixel :: Int,
-    maxDepth :: Int
+    maxDepth :: Int,
+    vFov :: Double, -- Visual view angle (field of view)
+    lookFrom :: Point3, -- Point the camera is located at
+    lookAt :: Point3, -- Point the camera is looking at
+    vUp :: Vec3 -- "Up" direction for the camera
   }
   deriving (Show, Eq)
 
@@ -44,15 +48,20 @@ mkCamera cfg =
     ratio :: Double = aspectRatio cfg
     width :: Int = imageWidth cfg
     height :: Int = max 1 (floor (fromIntegral width / ratio))
-    focalLength :: Double = 1.0
-    viewportHeight :: Double = 2.0
+    focalLength :: Double = V.length (V.sub (lookFrom cfg) (lookAt cfg))
+    theta = vFov cfg * pi / 180
+    h = tan (theta / 2)
+    viewportHeight :: Double = 2 * h * focalLength
     viewportWidth :: Double = viewportHeight * (fromIntegral width / fromIntegral height)
-    cameraCenter = Vec3 0 0 0
-    viewportU = Vec3 viewportWidth 0 0
-    viewportV = Vec3 0 (-(1 * viewportHeight)) 0
+    cameraCenter = lookFrom cfg
+    w = V.unit (V.sub (lookFrom cfg) (lookAt cfg))
+    u = V.unit (V.cross (vUp cfg) w)
+    v = V.cross w u
+    viewportU = V.scale viewportWidth u
+    viewportV = V.scale viewportHeight (V.negate v)
     pdu = V.div (fromIntegral width) viewportU
     pdv = V.div (fromIntegral height) viewportV
-    viewportUpperLeft = V.sub (V.sub (V.sub cameraCenter (Vec3 0 0 focalLength)) (V.div 2 viewportU)) (V.div 2 viewportV)
+    viewportUpperLeft = V.sub (V.sub (V.sub cameraCenter (V.scale focalLength w)) (V.div 2 viewportU)) (V.div 2 viewportV)
 
 sampleSquare :: StdGen -> (Vec3, StdGen)
 sampleSquare gen =

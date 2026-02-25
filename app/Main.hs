@@ -22,7 +22,7 @@ main = do
 
   let materialGround = mkLambertian (Vec3 0.8 0.8 0.0)
       materialCenter = mkLambertian (Vec3 0.1 0.2 0.5)
-      materialLeft = mkDielectric (1.5)
+      materialLeft = mkDielectric 1.5
       materialRight = mkMetal (Vec3 0.8 0.6 0.2) 1.0
       materialBubble = mkDielectric (1.0 / 1.5)
 
@@ -43,7 +43,11 @@ main = do
             { aspectRatio,
               imageWidth,
               samplesPerPixel = 50,
-              maxDepth = 50
+              maxDepth = 50,
+              vFov = 20,
+              lookFrom = Vec3 (-2) 2 1,
+              lookAt = Vec3 0 0 (-1),
+              vUp = Vec3 0 1 0
             }
 
   let gen = mkStdGen 42

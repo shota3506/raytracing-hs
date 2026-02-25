@@ -2,8 +2,8 @@ module Dielectric where
 
 import Intersection
 import Material
-import System.Random (uniformR)
 import Ray
+import System.Random (uniformR)
 import Vec3 qualified as V
 
 type Dielectric = Material

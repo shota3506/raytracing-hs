@@ -1,15 +1,17 @@
 module Sphere where
 
+import Intersection
 import Interval
+import Material
 import Ray
 import Shape
 import Vec3 (Point3)
 import Vec3 qualified as V
 
-data Sphere = Sphere {center :: Point3, radius :: Double}
+data Sphere = Sphere {center :: Point3, radius :: Double, material :: Material}
 
 toShape :: Sphere -> Shape
-toShape (Sphere center radius) = Shape {hit = hitSphere}
+toShape (Sphere center radius material) = Shape {hit = hitSphere}
   where
     r = max 0 radius
     hitSphere ray iv
@@ -18,9 +20,9 @@ toShape (Sphere center radius) = Shape {hit = hitSphere}
       | surrounds iv t2 = Just (mkIntersection t2)
       | otherwise = Nothing
       where
-        oc = V.sub center (rayOrigin ray)
-        a = V.dot (rayDirection ray) (rayDirection ray)
-        h = V.dot oc (rayDirection ray)
+        oc = V.sub center (origin ray)
+        a = V.dot (direction ray) (direction ray)
+        h = V.dot oc (direction ray)
         c = V.dot oc oc - r * r
         discriminant = h * h - a * c
 
@@ -31,4 +33,4 @@ toShape (Sphere center radius) = Shape {hit = hitSphere}
           let p = rayAt ray t'
               outwardNormal = V.div r (V.sub p center)
               (n, ff) = setFaceNormal ray outwardNormal
-           in Intersection {point = p, normal = n, t = t', frontFace = ff}
+           in (Intersection {point = p, normal = n, t = t', frontFace = ff}, material)

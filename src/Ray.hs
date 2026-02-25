@@ -4,8 +4,8 @@ import Vec3 (Point3, Vec3)
 import Vec3 qualified as V
 
 data Ray = Ray
-  { rayOrigin :: Point3,
-    rayDirection :: Vec3
+  { origin :: Point3,
+    direction :: Vec3
   }
 
 rayAt :: Ray -> Double -> Point3

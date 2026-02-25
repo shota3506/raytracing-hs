@@ -38,9 +38,23 @@ unit v = Vec3.div (Vec3.length v) v
 negate :: Vec3 -> Vec3
 negate = scale (-1)
 
+isNearZero :: Vec3 -> Bool
+isNearZero (Vec3 x y z) = abs x < 1e-8 && abs y < 1e-8 && abs z < 1e-8
+
+reflect :: Vec3 -> Vec3 -> Vec3
+reflect v n = sub v (scale (2 * dot v n) n)
+
 random :: Double -> Double -> StdGen -> (Vec3, StdGen)
 random vmin vmax gen =
   let (x, gn1) = uniformR (vmin, vmax) gen
       (y, gn2) = uniformR (vmin, vmax) gn1
       (z, gn3) = uniformR (vmin, vmax) gn2
    in (Vec3 x y z, gn3)
+
+uniformSphere :: StdGen -> (Vec3, StdGen)
+uniformSphere gen
+  | lensq > 1e-12 && lensq <= 1.0 = (Vec3.div (sqrt lensq) p, gen')
+  | otherwise = uniformSphere gen'
+  where
+    (p, gen') = random (-1.0) 1.0 gen
+    lensq = dot p p

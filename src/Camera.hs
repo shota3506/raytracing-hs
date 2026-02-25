@@ -3,25 +3,12 @@ module Camera where
 import Color
 import Data.List (foldl')
 import Interval
+import Material
 import Ray
 import Scene
-import Shape qualified
 import System.Random (StdGen, uniformR)
 import Vec3 (Point3, Vec3 (..))
 import Vec3 qualified as V
-
-uniformSphere :: StdGen -> (Vec3, StdGen)
-uniformSphere gen
-  | lensq > 1e-12 && lensq <= 1.0 = (V.div (sqrt lensq) p, gen')
-  | otherwise = uniformSphere gen'
-  where
-    (p, gen') = V.random (-1.0) 1.0 gen
-    lensq = V.dot p p
-
-uniformHemisphere :: Vec3 -> StdGen -> (Vec3, StdGen)
-uniformHemisphere normal gen =
-  let (v, gen') = uniformSphere gen
-   in if V.dot v normal > 0 then (v, gen') else (V.negate v, gen')
 
 data CameraConfig = CameraConfig
   { aspectRatio :: Double,
@@ -77,19 +64,20 @@ sampleRay :: Camera -> Int -> Int -> StdGen -> (Ray, StdGen)
 sampleRay cam i j gen =
   let (Vec3 x y _, gen1) = sampleSquare gen
       pixelCenter = V.add (V.add (pixel00Loc cam) (V.scale (fromIntegral i + x) (pixelDeltaU cam))) (V.scale (fromIntegral j + y) (pixelDeltaV cam))
-      rayDirection = V.sub pixelCenter (center cam)
-   in (Ray (center cam) rayDirection, gen1)
+      dir = V.sub pixelCenter (center cam)
+   in (Ray (center cam) dir, gen1)
 
 rayColor :: Ray -> Int -> Scene -> StdGen -> (Color, StdGen)
 rayColor r depth scene gen
   | depth <= 0 = (Vec3 0 0 0, gen)
-  | Just isec <- hit scene r (Interval 0.0001 (1 / 0)) =
-      let (v, gen') = uniformSphere gen
-          direction = V.add (Shape.normal isec) v
-          (color, gen'') = rayColor (Ray (Shape.point isec) direction) (depth - 1) scene gen'
-       in (V.scale 0.5 color, gen'')
+  | Just (isec, mat) <- hit scene r (Interval 0.0001 (1 / 0)) =
+      case scatter mat r isec gen of
+        Just (attenuation, scattered, gen') ->
+          let (color, gen'') = rayColor scattered (depth - 1) scene gen'
+           in (V.mul attenuation color, gen'')
+        Nothing -> (Vec3 0 0 0, gen)
   | otherwise =
-      let unitDirection = V.unit (rayDirection r)
+      let unitDirection = V.unit (direction r)
           (Vec3 _ y _) = unitDirection
           a = 0.5 * (y + 1.0)
        in (V.add (V.scale (1.0 - a) (Vec3 1.0 1.0 1.0)) (V.scale a (Vec3 0.5 0.7 1.0)), gen)

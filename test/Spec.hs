@@ -58,6 +58,20 @@ main = hspec $ do
     it "negates a vector" $ do
       V.negate (Vec3 1 (-2) 3) `shouldBe` Vec3 (-1) 2 (-3)
 
+  describe "V.reflect" $ do
+    it "reflects off a horizontal surface" $
+      V.reflect (Vec3 1 (-1) 0) (Vec3 0 1 0) `shouldBe` Vec3 1 1 0
+
+    it "reflects straight back on head-on" $
+      V.reflect (Vec3 0 0 (-1)) (Vec3 0 0 1) `shouldBe` Vec3 0 0 1
+
+  describe "V.isNearZero" $ do
+    it "returns True for near-zero vector" $
+      V.isNearZero (Vec3 1e-9 1e-9 1e-9) `shouldBe` True
+
+    it "returns False for non-zero vector" $
+      V.isNearZero (Vec3 0.1 0 0) `shouldBe` False
+
   describe "rayAt" $ do
     it "computes point at t=0" $ do
       let r = Ray (Vec3 0 0 0) (Vec3 1 2 3)

@@ -18,7 +18,9 @@ data CameraConfig = CameraConfig
     vFov :: Double, -- Visual view angle (field of view)
     lookFrom :: Point3, -- Point the camera is located at
     lookAt :: Point3, -- Point the camera is looking at
-    vUp :: Vec3 -- "Up" direction for the camera
+    vUp :: Vec3, -- "Up" direction for the camera
+    defocusAngle :: Double, -- Angle of defocus blur in degrees
+    focusDist :: Double -- Distance to the focal plane for defocus blur
   }
   deriving (Show, Eq)
 
@@ -29,7 +31,9 @@ data Camera = Camera
     center :: Point3,
     pixel00Loc :: Point3,
     pixelDeltaU :: Vec3,
-    pixelDeltaV :: Vec3
+    pixelDeltaV :: Vec3,
+    defocusDiskU :: Vec3,
+    defocusDiskV :: Vec3
   }
   deriving (Show, Eq)
 
@@ -42,17 +46,18 @@ mkCamera cfg =
       center = cameraCenter,
       pixel00Loc = V.add viewportUpperLeft (V.div 2 (V.add pdu pdv)),
       pixelDeltaU = pdu,
-      pixelDeltaV = pdv
+      pixelDeltaV = pdv,
+      defocusDiskU = V.scale defocusRadius u,
+      defocusDiskV = V.scale defocusRadius v
     }
   where
-    ratio :: Double = aspectRatio cfg
-    width :: Int = imageWidth cfg
-    height :: Int = max 1 (floor (fromIntegral width / ratio))
-    focalLength :: Double = V.length (V.sub (lookFrom cfg) (lookAt cfg))
+    ratio = aspectRatio cfg
+    width = imageWidth cfg
+    height = max 1 (floor (fromIntegral width / ratio))
     theta = vFov cfg * pi / 180
     h = tan (theta / 2)
-    viewportHeight :: Double = 2 * h * focalLength
-    viewportWidth :: Double = viewportHeight * (fromIntegral width / fromIntegral height)
+    viewportHeight = 2 * h * focusDist cfg
+    viewportWidth = viewportHeight * (fromIntegral width / fromIntegral height)
     cameraCenter = lookFrom cfg
     w = V.unit (V.sub (lookFrom cfg) (lookAt cfg))
     u = V.unit (V.cross (vUp cfg) w)
@@ -61,7 +66,8 @@ mkCamera cfg =
     viewportV = V.scale viewportHeight (V.negate v)
     pdu = V.div (fromIntegral width) viewportU
     pdv = V.div (fromIntegral height) viewportV
-    viewportUpperLeft = V.sub (V.sub (V.sub cameraCenter (V.scale focalLength w)) (V.div 2 viewportU)) (V.div 2 viewportV)
+    viewportUpperLeft = V.sub (V.sub (V.sub cameraCenter (V.scale (focusDist cfg) w)) (V.div 2 viewportU)) (V.div 2 viewportV)
+    defocusRadius = focusDist cfg * tan (defocusAngle cfg / 2 * pi / 180)
 
 sampleSquare :: StdGen -> (Vec3, StdGen)
 sampleSquare gen =
@@ -72,18 +78,29 @@ sampleSquare gen =
 sampleRay :: Camera -> Int -> Int -> StdGen -> (Ray, StdGen)
 sampleRay cam i j gen =
   let (Vec3 x y _, gen1) = sampleSquare gen
-      pixelCenter = V.add (V.add (pixel00Loc cam) (V.scale (fromIntegral i + x) (pixelDeltaU cam))) (V.scale (fromIntegral j + y) (pixelDeltaV cam))
-      dir = V.sub pixelCenter (center cam)
-   in (Ray (center cam) dir, gen1)
+      offsetU = V.scale (fromIntegral i + x) (pixelDeltaU cam)
+      offsetV = V.scale (fromIntegral j + y) (pixelDeltaV cam)
+      pixelCenter = V.add (V.add (pixel00Loc cam) offsetU) offsetV
+      (rayOrigin, gen2) = sampleDefocusDisk cam gen1
+      dir = V.sub pixelCenter rayOrigin
+   in (Ray rayOrigin dir, gen2)
+
+sampleDefocusDisk :: Camera -> StdGen -> (Vec3, StdGen)
+sampleDefocusDisk cam gen
+  | defocusAngle (config cam) <= 0 = (center cam, gen)
+  | otherwise =
+      let (Vec3 x y _, gen1) = V.uniformDisk gen
+          p = V.add (V.add (center cam) (V.scale x (defocusDiskU cam))) (V.scale y (defocusDiskV cam))
+       in (p, gen1)
 
 rayColor :: Ray -> Int -> Scene -> StdGen -> (Color, StdGen)
 rayColor r depth scene gen
   | depth <= 0 = (Vec3 0 0 0, gen)
   | Just (isec, mat) <- hit scene r (Interval 0.0001 (1 / 0)) =
       case scatter mat r isec gen of
-        Just (attenuation, scattered, gen') ->
-          let (color, gen'') = rayColor scattered (depth - 1) scene gen'
-           in (V.mul attenuation color, gen'')
+        Just (attenuation, scattered, gen1) ->
+          let (color, gen2) = rayColor scattered (depth - 1) scene gen1
+           in (V.mul attenuation color, gen2)
         Nothing -> (Vec3 0 0 0, gen)
   | otherwise =
       let unitDirection = V.unit (direction r)
@@ -93,22 +110,22 @@ rayColor r depth scene gen
 
 render :: Camera -> Scene -> StdGen -> ([[Color]], StdGen)
 render cam scene gen =
-  let (rows, gen') = foldl' renderRow ([], gen) [0 .. imageHeight cam - 1]
-   in (reverse rows, gen')
+  let (rows, gen1) = foldl' renderRow ([], gen) [0 .. imageHeight cam - 1]
+   in (reverse rows, gen1)
   where
-    renderRow (rows, g) j =
-      let (revRow, g') = foldl' renderPixel ([], g) [0 .. imageWidth (config cam) - 1]
-          renderPixel (colors, gi) i =
-            let (color, go) = samplePixelColor i j gi
-             in (color : colors, go)
-       in (reverse revRow : rows, g')
-    samplePixelColor i j g =
-      let (colors, g') = nSamples (samplesPerPixel (config cam)) i j g
+    renderRow (rows, gen) j =
+      let (revRow, gen1) = foldl' renderPixel ([], gen) [0 .. imageWidth (config cam) - 1]
+          renderPixel (colors, gen) i =
+            let (color, gen1) = samplePixelColor i j gen
+             in (color : colors, gen1)
+       in (reverse revRow : rows, gen1)
+    samplePixelColor i j gen =
+      let (colors, gen1) = nSamples (samplesPerPixel (config cam)) i j gen
           scale = pixelSamplesScale cam
-       in (V.scale scale (foldr V.add (Vec3 0 0 0) colors), g')
-    nSamples 0 _ _ g = ([], g)
-    nSamples n i j g =
-      let (r, g') = sampleRay cam i j g
-          (color, g'') = rayColor r (maxDepth (config cam)) scene g'
-          (rest, g''') = nSamples (n - 1) i j g''
-       in (color : rest, g''')
+       in (V.scale scale (foldr V.add (Vec3 0 0 0) colors), gen1)
+    nSamples 0 _ _ gen = ([], gen)
+    nSamples n i j gen =
+      let (r, gen1) = sampleRay cam i j gen
+          (color, gen2) = rayColor r (maxDepth (config cam)) scene gen1
+          (rest, gen3) = nSamples (n - 1) i j gen2
+       in (color : rest, gen3)

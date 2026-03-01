@@ -13,9 +13,9 @@ mkLambertian albedo =
   Material {scatter = scatterLambertian}
   where
     scatterLambertian _ isec gen =
-      let (v, gen') = V.uniformSphere gen
+      let (v, gen1) = V.uniformSphere gen
           scatterDir =
             let d = V.add (normal isec) v
              in if V.isNearZero d then normal isec else d
           scattered = Ray {origin = point isec, direction = scatterDir}
-       in Just (albedo, scattered, gen')
+       in Just (albedo, scattered, gen1)

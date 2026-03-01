@@ -54,6 +54,10 @@ main = hspec $ do
     it "computes length" $ do
       V.length (Vec3 3 4 0) `shouldBe` 5
 
+  describe "V.unit" $ do
+    it "normalizes a vector to length 1" $
+      V.length (V.unit (Vec3 3 4 0)) `shouldSatisfy` (\l -> abs (l - 1.0) < 1e-9)
+
   describe "V.negate" $ do
     it "negates a vector" $ do
       V.negate (Vec3 1 (-2) 3) `shouldBe` Vec3 (-1) 2 (-3)

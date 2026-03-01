@@ -24,9 +24,9 @@ mkDielectric refIdx =
 
           cosTheta = min (V.dot (V.negate unitDirection) (normal isec)) 1.0
           sinTheta = sqrt (max (1.0 - cosTheta * cosTheta) 0.0)
-          (r, gen') = uniformR (0.0, 1.0) gen
+          (r, gen1) = uniformR (0.0, 1.0) gen
           dir =
             if etaiOverEtat * sinTheta > 1.0 || reflectance cosTheta etaiOverEtat > r
               then V.reflect unitDirection (normal isec)
               else V.refract unitDirection (normal isec) etaiOverEtat
-       in Just (attenuation, Ray {origin = point isec, direction = dir}, gen')
+       in Just (attenuation, Ray {origin = point isec, direction = dir}, gen1)

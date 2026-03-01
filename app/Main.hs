@@ -47,7 +47,9 @@ main = do
               vFov = 20,
               lookFrom = Vec3 (-2) 2 1,
               lookAt = Vec3 0 0 (-1),
-              vUp = Vec3 0 1 0
+              vUp = Vec3 0 1 0,
+              defocusAngle = 10,
+              focusDist = 3.4
             }
 
   let gen = mkStdGen 42

@@ -12,6 +12,7 @@ common warnings
 
 library
     import:           warnings
+    ghc-options:      -O2
     exposed-modules:  Vec3, Color, Ray, Shape, Sphere, Scene, Interval, Camera, Material, Lambertian, Metal, Intersection, Dielectric
     hs-source-dirs:   src
     build-depends:    base ^>=4.18.3.0, random
@@ -19,6 +20,7 @@ library
 
 executable raytracing-hs
     import:           warnings
+    ghc-options:      -O2
     main-is:          Main.hs
     build-depends:    base ^>=4.18.3.0, random, raytracing-hs
     hs-source-dirs:   app

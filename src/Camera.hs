@@ -120,12 +120,11 @@ render cam scene gen =
              in (color : colors, go)
        in (reverse revRow : rows, g1)
     samplePixelColor i j g =
-      let (colors, g1) = nSamples (samplesPerPixel (config cam)) i j g
-          s = pixelSamplesScale cam
-       in (V.scale s (foldr V.add (Vec3 0 0 0) colors), g1)
-    nSamples 0 _ _ g = ([], g)
-    nSamples n i j g =
+      let s = pixelSamplesScale cam
+          (acc, g1) = accumSamples (samplesPerPixel (config cam)) i j (Vec3 0 0 0) g
+       in (V.scale s acc, g1)
+    accumSamples 0 _ _ acc g = (acc, g)
+    accumSamples n i j acc g =
       let (r, g1) = sampleRay cam i j g
           (color, g2) = rayColor r (maxDepth (config cam)) scene g1
-          (rest, g3) = nSamples (n - 1) i j g2
-       in (color : rest, g3)
+       in accumSamples (n - 1) i j (V.add acc color) g2

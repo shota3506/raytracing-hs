@@ -113,19 +113,19 @@ render cam scene gen =
   let (rows, gen1) = foldl' renderRow ([], gen) [0 .. imageHeight cam - 1]
    in (reverse rows, gen1)
   where
-    renderRow (rows, gen) j =
-      let (revRow, gen1) = foldl' renderPixel ([], gen) [0 .. imageWidth (config cam) - 1]
-          renderPixel (colors, gen) i =
-            let (color, gen1) = samplePixelColor i j gen
-             in (color : colors, gen1)
-       in (reverse revRow : rows, gen1)
-    samplePixelColor i j gen =
-      let (colors, gen1) = nSamples (samplesPerPixel (config cam)) i j gen
-          scale = pixelSamplesScale cam
-       in (V.scale scale (foldr V.add (Vec3 0 0 0) colors), gen1)
-    nSamples 0 _ _ gen = ([], gen)
-    nSamples n i j gen =
-      let (r, gen1) = sampleRay cam i j gen
-          (color, gen2) = rayColor r (maxDepth (config cam)) scene gen1
-          (rest, gen3) = nSamples (n - 1) i j gen2
-       in (color : rest, gen3)
+    renderRow (rows, g) j =
+      let (revRow, g1) = foldl' renderPixel ([], g) [0 .. imageWidth (config cam) - 1]
+          renderPixel (colors, gi) i =
+            let (color, go) = samplePixelColor i j gi
+             in (color : colors, go)
+       in (reverse revRow : rows, g1)
+    samplePixelColor i j g =
+      let (colors, g1) = nSamples (samplesPerPixel (config cam)) i j g
+          s = pixelSamplesScale cam
+       in (V.scale s (foldr V.add (Vec3 0 0 0) colors), g1)
+    nSamples 0 _ _ g = ([], g)
+    nSamples n i j g =
+      let (r, g1) = sampleRay cam i j g
+          (color, g2) = rayColor r (maxDepth (config cam)) scene g1
+          (rest, g3) = nSamples (n - 1) i j g2
+       in (color : rest, g3)

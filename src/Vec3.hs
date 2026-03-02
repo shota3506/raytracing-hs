@@ -2,7 +2,7 @@ module Vec3 where
 
 import System.Random (StdGen, uniformR)
 
-data Vec3 = Vec3 Double Double Double
+data Vec3 = Vec3 !Double !Double !Double
   deriving (Show, Eq)
 
 type Point3 = Vec3

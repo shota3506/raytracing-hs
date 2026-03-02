@@ -59,18 +59,15 @@ random vmin vmax gen =
    in (Vec3 x y z, gn3)
 
 uniformDisk :: StdGen -> (Vec3, StdGen)
-uniformDisk gen
-  | lensq <= 1.0 = (Vec3 x y 0, gen'')
-  | otherwise = uniformDisk gen''
-  where
-    (x, gen') = uniformR (-1.0, 1.0) gen
-    (y, gen'') = uniformR (-1.0, 1.0) gen'
-    lensq = dot (Vec3 x y 0) (Vec3 x y 0)
+uniformDisk gen =
+  let (theta, gen1) = uniformR (0, 2 * pi) gen
+      (u, gen2) = uniformR (0.0, 1.0) gen1
+      r = sqrt u
+   in (Vec3 (r * cos theta) (r * sin theta) 0, gen2)
 
 uniformSphere :: StdGen -> (Vec3, StdGen)
-uniformSphere gen
-  | lensq > 1e-12 && lensq <= 1.0 = (Vec3.div (sqrt lensq) p, gen')
-  | otherwise = uniformSphere gen'
-  where
-    (p, gen') = random (-1.0) 1.0 gen
-    lensq = dot p p
+uniformSphere gen =
+  let (z, gen1) = uniformR (-1.0, 1.0) gen
+      (theta, gen2) = uniformR (0, 2 * pi) gen1
+      r = sqrt (1 - z * z)
+   in (Vec3 (r * cos theta) (r * sin theta) z, gen2)

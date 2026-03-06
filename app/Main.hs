@@ -17,15 +17,15 @@ import Vec3 qualified as V
 randomScene :: StdGen -> ([Shape], StdGen)
 randomScene gen =
   let groundMaterial = mkLambertian (Vec3 0.5 0.5 0.5)
-      ground = toShape (Sphere (Vec3 0 (-1000) 0) 1000 groundMaterial)
+      ground = toShape (Sphere (Vec3 0 (-1000) 0) (Vec3 0 0 0) 1000 groundMaterial)
       (smallSpheres, gen1) = generateSmallSpheres gen
       material1 = mkDielectric 1.5
       material2 = mkLambertian (Vec3 0.4 0.2 0.1)
       material3 = mkMetal (Vec3 0.7 0.6 0.5) 0.0
       bigSpheres =
-        [ toShape (Sphere (Vec3 0 1 0) 1.0 material1),
-          toShape (Sphere (Vec3 (-4) 1 0) 1.0 material2),
-          toShape (Sphere (Vec3 4 1 0) 1.0 material3)
+        [ toShape (Sphere (Vec3 0 1 0) (Vec3 0 0 0) 1.0 material1),
+          toShape (Sphere (Vec3 (-4) 1 0) (Vec3 0 0 0) 1.0 material2),
+          toShape (Sphere (Vec3 4 1 0) (Vec3 0 0 0) 1.0 material3)
         ]
    in (ground : smallSpheres ++ bigSpheres, gen1)
 
@@ -50,22 +50,23 @@ generateSmallSpheres gen = foldr go ([], gen) [(a, b) | a <- [-11 .. 10 :: Int],
               (r2, g4') = uniformR (0.0 :: Double, 1.0) g3'
               (g2, g5') = uniformR (0.0 :: Double, 1.0) g4'
               (b2, g6') = uniformR (0.0 :: Double, 1.0) g5'
+              (dy, g7') = uniformR (0.0 :: Double, 0.5) g6'
               albedo = V.mul (Vec3 r1 g1 b1) (Vec3 r2 g2 b2)
               mat = mkLambertian albedo
-           in (toShape (Sphere center 0.2 mat), g6')
+           in (toShape (Sphere center (Vec3 0 dy 0) 0.2 mat), g7')
       | chooseMat < 0.95 =
           let (albedo, g1') = V.random 0.5 1.0 g
               (fuzz, g2') = uniformR (0.0 :: Double, 0.5) g1'
               mat = mkMetal albedo fuzz
-           in (toShape (Sphere center 0.2 mat), g2')
+           in (toShape (Sphere center (Vec3 0 0 0) 0.2 mat), g2')
       | otherwise =
           let mat = mkDielectric 1.5
-           in (toShape (Sphere center 0.2 mat), g)
+           in (toShape (Sphere center (Vec3 0 0 0) 0.2 mat), g)
 
 main :: IO ()
 main = do
   let aspectRatio :: Double = 16.0 / 9.0
-  let imageWidth :: Int = 1200
+  let imageWidth :: Int = 400
   let imageHeight :: Int = max 1 (floor (fromIntegral imageWidth / aspectRatio))
 
   let gen = mkStdGen 42
@@ -78,7 +79,7 @@ main = do
           CameraConfig
             { aspectRatio,
               imageWidth,
-              samplesPerPixel = 500,
+              samplesPerPixel = 100,
               maxDepth = 50,
               vFov = 20,
               lookFrom = Vec3 13 2 3,

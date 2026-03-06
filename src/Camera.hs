@@ -83,7 +83,8 @@ sampleRay cam i j gen =
       pixelCenter = V.add (V.add (pixel00Loc cam) offsetU) offsetV
       (rayOrigin, gen2) = sampleDefocusDisk cam gen1
       dir = V.sub pixelCenter rayOrigin
-   in (Ray rayOrigin dir, gen2)
+      (time, gen3) = uniformR (0.0, 1.0) gen2
+   in (Ray rayOrigin dir time, gen3)
 
 sampleDefocusDisk :: Camera -> StdGen -> (Vec3, StdGen)
 sampleDefocusDisk cam gen

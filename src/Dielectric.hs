@@ -29,4 +29,4 @@ mkDielectric refIdx =
             if etaiOverEtat * sinTheta > 1.0 || reflectance cosTheta etaiOverEtat > r
               then V.reflect unitDirection (normal isec)
               else V.refract unitDirection (normal isec) etaiOverEtat
-       in Just (attenuation, Ray {origin = point isec, direction = dir}, gen1)
+       in Just (attenuation, Ray {origin = point isec, direction = dir, time = time ray}, gen1)

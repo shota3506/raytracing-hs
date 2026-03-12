@@ -28,3 +28,7 @@ spec = describe "Interval" $ do
 
     it "returns False on boundary" $
       surrounds (Interval 0 1) 0 `shouldBe` False
+
+  describe "enclose" $ do
+    it "encloses two intervals" $
+      enclose (Interval 1 3) (Interval 5 7) `shouldBe` Interval 1 7

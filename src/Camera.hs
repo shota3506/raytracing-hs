@@ -5,7 +5,7 @@ import Data.List (foldl')
 import Interval
 import Material
 import Ray
-import Scene
+import Shape
 import System.Random (StdGen, uniformR)
 import Vec3 (Point3, Vec3 (..))
 import Vec3 qualified as V
@@ -94,7 +94,7 @@ sampleDefocusDisk cam gen
           p = V.add (V.add (center cam) (V.scale x (defocusDiskU cam))) (V.scale y (defocusDiskV cam))
        in (p, gen1)
 
-rayColor :: Ray -> Int -> Scene -> StdGen -> (Color, StdGen)
+rayColor :: Ray -> Int -> Shape -> StdGen -> (Color, StdGen)
 rayColor r depth scene gen
   | depth <= 0 = (Vec3 0 0 0, gen)
   | Just (isec, mat) <- hit scene r (Interval 0.0001 (1 / 0)) =
@@ -109,7 +109,7 @@ rayColor r depth scene gen
           a = 0.5 * (y + 1.0)
        in (V.add (V.scale (1.0 - a) (Vec3 1.0 1.0 1.0)) (V.scale a (Vec3 0.5 0.7 1.0)), gen)
 
-render :: Camera -> Scene -> StdGen -> ([[Color]], StdGen)
+render :: Camera -> Shape -> StdGen -> ([[Color]], StdGen)
 render cam scene gen =
   let (rows, gen1) = foldl' renderRow ([], gen) [0 .. imageHeight cam - 1]
    in (reverse rows, gen1)

@@ -1,18 +1,24 @@
 module Sphere where
 
+import AABB
+import AABB qualified as A
 import Intersection
 import Interval
 import Material
 import Ray
 import Ray qualified as R
 import Shape
-import Vec3 (Point3, Vec3)
+import Vec3 (Point3, Vec3 (..))
 import Vec3 qualified as V
 
 data Sphere = Sphere {center :: Point3, movement :: Vec3, radius :: Double, material :: Material}
 
 toShape :: Sphere -> Shape
-toShape (Sphere center movement radius material) = Shape {hit = hitSphere}
+toShape (Sphere center movement radius material) =
+  Shape
+    { hit = hitSphere,
+      boundingBox = sphereBBox
+    }
   where
     r = max 0 radius
     hitSphere ray iv
@@ -36,3 +42,17 @@ toShape (Sphere center movement radius material) = Shape {hit = hitSphere}
               outwardNormal = V.div r (V.sub p currentCenter)
               (n, ff) = setFaceNormal ray outwardNormal
            in (Intersection {point = p, normal = n, t = t', frontFace = ff}, material)
+    sphereBBox =
+      let (Vec3 cx1 cy1 cz1) = center
+          (Vec3 cx2 cy2 cz2) = V.add center movement
+       in A.enclose
+            AABB
+              { x = Interval (cx1 - r) (cx1 + r),
+                y = Interval (cy1 - r) (cy1 + r),
+                z = Interval (cz1 - r) (cz1 + r)
+              }
+            AABB
+              { x = Interval (cx2 - r) (cx2 + r),
+                y = Interval (cy2 - r) (cy2 + r),
+                z = Interval (cz2 - r) (cz2 + r)
+              }

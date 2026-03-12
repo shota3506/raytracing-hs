@@ -1,5 +1,7 @@
 module Main (main) where
 
+import AABBSpec qualified
+import BVHSpec qualified
 import CameraSpec qualified
 import ColorSpec qualified
 import IntervalSpec qualified
@@ -15,6 +17,8 @@ main = hspec $ do
   IntervalSpec.spec
   ColorSpec.spec
   CameraSpec.spec
+  AABBSpec.spec
+  BVHSpec.spec
 
   describe "V.add" $ do
     it "adds two vectors" $ do

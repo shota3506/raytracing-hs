@@ -13,7 +13,7 @@ common warnings
 library
     import:           warnings
     ghc-options:      -O2
-    exposed-modules:  Vec3, Color, Ray, Shape, Sphere, Scene, Interval, Camera, Material, Lambertian, Metal, Intersection, Dielectric
+    exposed-modules:  Vec3, Color, Ray, Shape, Sphere, Interval, Camera, Material, Lambertian, Metal, Intersection, Dielectric, AABB, BVH
     hs-source-dirs:   src
     build-depends:    base ^>=4.18.3.0, random
     default-language: GHC2021
@@ -30,7 +30,7 @@ test-suite raytracing-hs-test
     import:           warnings
     type:             exitcode-stdio-1.0
     main-is:          Spec.hs
-    other-modules:    SphereSpec, IntervalSpec, ColorSpec, CameraSpec
+    other-modules:    SphereSpec, IntervalSpec, ColorSpec, CameraSpec, AABBSpec, BVHSpec
     hs-source-dirs:   test
     build-depends:    base ^>=4.18.3.0, hspec, raytracing-hs
     default-language: GHC2021

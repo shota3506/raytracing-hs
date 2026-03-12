@@ -1,12 +1,12 @@
 module Main (main) where
 
+import BVH
 import Camera
 import Color
 import Control.Monad (forM_)
 import Dielectric
 import Lambertian
 import Metal
-import Scene
 import Shape (Shape)
 import Sphere
 import System.IO (hPutStrLn, stderr)
@@ -72,7 +72,7 @@ main = do
   let gen = mkStdGen 42
   let (spheres, gen1) = randomScene gen
 
-  let scene = Scene spheres
+  let world = buildBVH spheres
 
   let cam =
         mkCamera
@@ -91,7 +91,7 @@ main = do
 
   putStrLn ("P3\n" ++ show imageWidth ++ " " ++ show imageHeight ++ "\n255")
 
-  let (rows, _) = render cam scene gen1
+  let (rows, _) = render cam world gen1
   forM_ (zip [0 ..] rows) $ \(j, row) -> do
     hPutStrLn stderr ("Scanlines remaining: " ++ show (imageHeight - j))
     mapM_ (putStrLn . formatColor) row
